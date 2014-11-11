@@ -24,6 +24,10 @@ class Particle(object):
         return int(self._properties[9])
 
     @property
+    def time(self):
+        return float(self._properties[0])
+
+    @property
     def E(self):
         return float(self._properties[4])
 
