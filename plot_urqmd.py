@@ -60,7 +60,10 @@ class Particle(object):
 def main():
     parser = argparse.ArgumentParser(description='Read a config file.')
     parser.add_argument('urqmd_file', metavar='URQMD_FILE', type=argparse.FileType('r'), help="Must be of type .f14")
+    parser.add_argument('--verbosity', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
     args = parser.parse_args()
+
+    logging.basicConfig(level=args.verbosity)
 
     events = []
     event_number = []
