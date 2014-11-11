@@ -33,6 +33,7 @@ class F14_Reader(F_Reader):
             if parts[0] == 'event#': event['id'] = int(parts[1])
             if len(parts) == 15:
                 event['particle_properties'].append(parts)
+        if event: yield event
 
 
 def main():
