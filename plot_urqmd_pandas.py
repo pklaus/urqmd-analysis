@@ -14,11 +14,11 @@ def main():
     parser = argparse.ArgumentParser(description='Read a config file.')
     parser.add_argument('pandas_file', metavar='PANDAS_FILE', help="A pickle file created with pandas.")
     parser.add_argument('--verbosity', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
+    parser.add_argument('--event-no', type=int, help='Total number of events (to scale histograms)', required=True)
     args = parser.parse_args()
 
     logging.basicConfig(level=args.verbosity)
 
-    event_no = 100
 
     df = pd.read_pickle(args.pandas_file)
     
@@ -33,6 +33,7 @@ def main():
     logging.info("{} particles of which {} pions or kaons".format(len(df), len(pions), len(pions)+len(kaons)))
     
     fig, ax = plt.subplots(1,2, figsize=(10,4))
+    event_no = args.event_no
 
     ### rapidity distribution
     ax[0].set_title('Rapidity Distribution')
