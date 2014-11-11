@@ -25,8 +25,6 @@ def main():
     df['y'] = .5 * np.log((df.p0 + df.pz)/(df.p0 - df.pz))
     df['mT'] = np.sqrt(df.m**2 + df.px**2 + df.py**2)
     df['mT_weights'] = 1./df.mT**2
-    # rapidity cut: |y| < 1.0
-    df_rapidity_cut = df[abs(df.y) < 1.0]
     nucleons = df[df.ityp == 1]
     pions = df[df.ityp == 101]
     kaons = df[abs(df.ityp) == 106]
@@ -72,6 +70,11 @@ def main():
 
     ### transverse mass distribution
     ax[1].set_title('Transverse Mass Distribution')
+    # rapidity cut: |y| < 1.0
+    #df_rapidity_cut = df[abs(df.y) < 1.0]
+    nucleons = nucleons[abs(nucleons.y) < 1.0]
+    pions = pions[abs(pions.y) < 1.0]
+    kaons = kaons[abs(kaons.y) < 1.0]
     #ax[1].ylabel('1/mT^2 dN/dmT')
     #ax[1].xlabel('mT / GeV')
     bins_mT = 80
