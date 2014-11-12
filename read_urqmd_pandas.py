@@ -16,12 +16,7 @@ class F14_Reader(object):
         self.add_event_id_column = add_event_id_column
 
     def get_dataframe(self):
-        new_event = False
         event = None
-        first_line = next(self.data_file)
-        #assert(first_line.startswith('UQMD'))
-        for i in range(18):
-            next(self.data_file)
         names = ['r0', 'rx', 'ry', 'rz', 'p0', 'px', 'py', 'pz', 'm', 'ityp', '2i3', 'chg', 'lcl#', 'ncl', 'or']
         df = pd.read_table(self.data_file, names=names, delim_whitespace=True)
         df = df[df['or'].notnull()]
