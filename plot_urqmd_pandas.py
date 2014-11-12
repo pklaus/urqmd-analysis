@@ -81,11 +81,10 @@ def main():
     ax[1].set_xlabel('dN/dy')
     #fig.text(0.50, 0.5, '1/mT^2 dN/dmT', ha='center', va='center', rotation='vertical')
     ax[1].set_ylabel('1/mT^2 dN/dmT')
-    # rapidity cut: |y| < 1.0
-    #df_rapidity_cut = df[abs(df.y) < 1.0]
-    nucleons = nucleons[abs(nucleons.y) < 1.0]
-    pions = pions[abs(pions.y) < 1.0]
-    kaons = kaons[abs(kaons.y) < 1.0]
+    # We use the rapidity cut: |y| < 1.0
+    nucleons = nucleons[np.abs(nucleons.y) < 1.0]
+    pions = pions[np.abs(pions.y) < 1.0]
+    kaons = kaons[np.abs(kaons.y) < 1.0]
     bins_mT = 80
     # Nucleons
     hist, bins = np.histogram(nucleons.mT, weights=nucleons.mT_weights, bins=bins_mT)
