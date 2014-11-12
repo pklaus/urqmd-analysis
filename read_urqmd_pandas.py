@@ -9,17 +9,11 @@ import pandas as pd
 import numpy as np
 
 
-class F_Reader(object):
+class F14_Reader(object):
 
     def __init__(self, data_file, add_event_id_column=False):
         self.data_file = data_file
         self.add_event_id_column = add_event_id_column
-
-    def get_events(self):
-        pass
-
-
-class F14_Reader(F_Reader):
 
     def get_events(self):
         new_event = False
