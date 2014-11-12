@@ -9,33 +9,11 @@ import pandas as pd
 import numpy as np
 
 
-class TextCleaner(object):
-    def __init__(self, in_file):
-        self.in_file = in_file
-        self.new_event = False
-        self.event_id = 0
-        #f = io.StringIO("some initial text data")
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        while True:
-            # raises StopIteration when reached EOF
-            line = next(self.in_file)
-            parts = line.split()
-            if not len(parts): continue
-            if parts[0] == 'event#': self.event_id = int(parts[1])
-            if len(parts) == 15:
-                return str(self.event_id) + ' ' + line
-
-    def read(self, bytes=-1):
-        return self.next()
-
 class F_Reader(object):
 
-    def __init__(self, data_file):
+    def __init__(self, data_file, add_event_id_column=False):
         self.data_file = data_file
+        self.add_event_id_column = add_event_id_column
 
     def get_events(self):
         pass
