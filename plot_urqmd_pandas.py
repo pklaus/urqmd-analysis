@@ -40,8 +40,10 @@ def main():
 
     ### rapidity distribution
     ax[0].set_title('Rapidity Distribution')
-    #fig.ylabel('dN/dy')
-    #ax[0].xlabel('y / GeV')
+    #fig.text(0.35, 0.04, 'rapidity', ha='center', va='center')
+    ax[0].set_xlabel('rapidity y / GeV')
+    #fig.text(0.10, 0.5, 'dN/dy', ha='center', va='center', rotation='vertical')
+    ax[0].set_ylabel('dN/dy')
     bins_rapidity = 50
     # All Particles
     hist, bins = np.histogram(df.y, bins=bins_rapidity)
@@ -75,13 +77,15 @@ def main():
 
     ### transverse mass distribution
     ax[1].set_title('Transverse Mass Distribution')
+    #fig.text(0.70, 0.04, 'mT / GeV', ha='center', va='center')
+    ax[1].set_xlabel('dN/dy')
+    #fig.text(0.50, 0.5, '1/mT^2 dN/dmT', ha='center', va='center', rotation='vertical')
+    ax[1].set_ylabel('1/mT^2 dN/dmT')
     # rapidity cut: |y| < 1.0
     #df_rapidity_cut = df[abs(df.y) < 1.0]
     nucleons = nucleons[abs(nucleons.y) < 1.0]
     pions = pions[abs(pions.y) < 1.0]
     kaons = kaons[abs(kaons.y) < 1.0]
-    #ax[1].ylabel('1/mT^2 dN/dmT')
-    #ax[1].xlabel('mT / GeV')
     bins_mT = 80
     # Nucleons
     hist, bins = np.histogram(nucleons.mT, weights=nucleons.mT_weights, bins=bins_mT)
