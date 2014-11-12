@@ -14,13 +14,19 @@ def main():
     parser = argparse.ArgumentParser(description='Read a config file.')
     parser.add_argument('pandas_file', metavar='PANDAS_FILE', help="A pickle file created with pandas.")
     parser.add_argument('--verbosity', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
-    parser.add_argument('--event-no', type=int, help='Total number of events (to scale histograms)', required=True)
+    parser.add_argument('--event-no', type=int, help='Total number of events (to scale histograms)')
     args = parser.parse_args()
 
     logging.basicConfig(level=args.verbosity)
 
-
     df = pd.read_pickle(args.pandas_file)
+
+    try:
+        event_no = len(df['event_id'].unique())
+    except:
+        if args.event_no: event_no = args.event_no
+        else: parser.error('The event_id is not included in the data. You must thus specify --event-no as param.')
+
     
     df['y'] = .5 * np.log((df.p0 + df.pz)/(df.p0 - df.pz))
     df['mT'] = np.sqrt(df.m**2 + df.px**2 + df.py**2)
@@ -31,7 +37,6 @@ def main():
     logging.info("{} particles of which {} pions or kaons".format(len(df), len(pions), len(pions)+len(kaons)))
     
     fig, ax = plt.subplots(1,2, figsize=(10,4))
-    event_no = args.event_no
 
     ### rapidity distribution
     ax[0].set_title('Rapidity Distribution')
