@@ -7,16 +7,10 @@ import pickle
 import logging
 
 
-class F_Reader(object):
+class F14_Reader(object):
 
     def __init__(self, data_file):
         self.data_file = data_file
-
-    def get_events(self):
-        pass
-
-
-class F14_Reader(F_Reader):
 
     def get_events(self):
         new_event = False
