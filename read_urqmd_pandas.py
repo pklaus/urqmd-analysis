@@ -38,7 +38,7 @@ class F14_Reader(object):
 
 def main():
     parser = argparse.ArgumentParser(description='Read a config file.')
-    parser.add_argument('urqmd_file', metavar='URQMD_FILE', type=argparse.FileType('r'), help="Must be of type .f14")
+    parser.add_argument('urqmd_file', metavar='URQMD_FILE', type=argparse.FileType('r', encoding='ascii'), help="Must be of type .f14")
     parser.add_argument('--output_file', metavar='OUT_FILE')
     args = parser.parse_args()
 
