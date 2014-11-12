@@ -15,7 +15,7 @@ class F14_Reader(object):
         self.data_file = data_file
         self.add_event_id_column = add_event_id_column
 
-    def get_events(self):
+    def get_dataframe(self):
         new_event = False
         event = None
         first_line = next(self.data_file)
@@ -42,7 +42,7 @@ def main():
     parser.add_argument('--output-file', metavar='OUT_FILE', help='The .pkl file to store the information in')
     args = parser.parse_args()
 
-    df = F14_Reader(args.urqmd_file).get_events()
+    df = F14_Reader(args.urqmd_file).get_dataframe()
 
     if args.output_file:
         df.to_pickle(args.output_file)
