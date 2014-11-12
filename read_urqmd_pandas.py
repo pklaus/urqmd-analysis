@@ -42,10 +42,7 @@ def main():
     parser.add_argument('--output-file', metavar='OUT_FILE', help='The .pkl file to store the information in')
     args = parser.parse_args()
 
-    #tc = TextCleaner(args.urqmd_file)
-    #F14_Reader(tc).get_events()
     df = F14_Reader(args.urqmd_file).get_events()
-    #import pdb; pdb.set_trace()
 
     if args.output_file:
         df.to_pickle(args.output_file)
