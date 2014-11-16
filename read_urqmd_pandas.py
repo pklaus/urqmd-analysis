@@ -8,6 +8,9 @@ import tables
 import argparse
 import logging
 import warnings
+import multiprocessing
+import time
+import queue
 
 
 class F14_Reader(object):
@@ -58,6 +61,24 @@ class F14_Reader(object):
             yield df
 
 
+class Worker(multiprocessing.Process):
+
+    def __init__(self, q, f):
+        self.q = q # queue
+        self.f = f # function
+        super(Worker, self).__init__()
+
+    def run(self):
+        while True:
+            try:
+                # get queue content
+                qc = self.q.get(timeout=0.2)
+            except queue.Empty:
+                continue
+            if type(qc) == str and qc == 'EOF': break
+            self.f(qc) # call function on queue content
+
+
 def main():
     parser = argparse.ArgumentParser(description='Read a config file.')
     parser.add_argument('urqmd_file', metavar='URQMD_FILE', type=argparse.FileType('r', encoding='ascii'), help="Must be of type .f14")
@@ -68,12 +89,24 @@ def main():
     args = parser.parse_args()
 
     logging.basicConfig(level=args.verbosity)
+    pool = multiprocessing.Pool()
 
     hdf = pd.HDFStore(args.out_file)
     original_warnings = list(warnings.filters)
     warnings.simplefilter('ignore', tables.NaturalNameWarning)
+
+    queue = multiprocessing.Queue()
+    append_func = lambda df: hdf.append('particles', df, format='table', data_columns=True)
+    worker = Worker(queue, append_func)
+    worker.start()
     for df in F14_Reader(args.urqmd_file, args.no_event_id_column).iter_dataframes(chunksize = args.chunksize):
-        hdf.append('particles', df, format='table', data_columns=True)
+        if not queue.empty(): time.sleep(0.05)
+        queue.put(df)
+    queue.put('EOF')
+    queue.close()
+    queue.join_thread()
+    worker.join()
+
     warnings.filters = original_warnings
     hdf.close()
 
