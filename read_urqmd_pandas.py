@@ -15,29 +15,42 @@ import queue
 
 class F14_Reader(object):
 
-    def __init__(self, data_file, add_event_id_column=False):
+    def __init__(self, data_file, add_event_id_column=False, renumber_event_ids=False):
         self.data_file = data_file
         self.add_event_id_column = add_event_id_column
+        self.renumber_event_ids = renumber_event_ids
 
     def get_dataframe(self):
         return pd.concat(list(self.iter_dataframes()), ignore_index=True)
 
     def iter_dataframes(self, chunksize=100000):
-        last_event_id = 0
+        curr_event_id = 0
         names = ['r0', 'rx', 'ry', 'rz', 'p0', 'px', 'py', 'pz', 'm', 'ityp', '2i3', 'chg', 'lcl#', 'ncl', 'or']
         for df in pd.read_table(self.data_file, names=names, delim_whitespace=True, chunksize=chunksize):
             logging.info('Read in {} lines.'.format(len(df)))
             if self.add_event_id_column:
                 #total_event_no = len(df[df.r0 == 'UQMD'])
-                df['event_id'] = last_event_id
+                df['event_id'] = curr_event_id
                 event_start = None
                 for idx in df[df.r0 == 'event#'].index:
+                    # remember the index where the event started
                     if event_start == None:
                         event_start = idx
                         continue
-                    df.loc[event_start:idx, 'event_id'] = df.loc[event_start, 'rx']
+                    # set curr_event_id
+                    if self.renumber_event_ids:
+                        curr_event_id += 1
+                    else:
+                        curr_event_id = df.loc[event_start, 'rx']
+                    # update event_id for all particles:
+                    df.loc[event_start:idx, 'event_id'] = curr_event_id
                     event_start = idx
-                df.loc[event_start:, 'event_id'] = df.loc[event_start, 'rx']
+                # update particles belonging to the last event
+                if self.renumber_event_ids:
+                    curr_event_id += 1
+                else:
+                    curr_event_id = df.loc[event_start, 'rx']
+                df.loc[event_start:, 'event_id'] = curr_event_id
             df = df[df['or'].notnull()]
             df = df.convert_objects(convert_numeric=True)
             df.dropna(how='any', inplace=True)
