@@ -44,7 +44,7 @@ def main():
     ax[0].set_xlabel('rapidity y / GeV')
     #fig.text(0.10, 0.5, 'dN/dy', ha='center', va='center', rotation='vertical')
     ax[0].set_ylabel('dN/dy')
-    bins_rapidity = 50
+    bins_rapidity = np.linspace(-4.0, 4.0, num=81)
     # All Particles
     hist, bins = np.histogram(df.y, bins=bins_rapidity)
     #rescale histo:
@@ -59,20 +59,22 @@ def main():
         bin_width = bins[1] - bins[0]
         hist[i] = hist[i] / bin_width / event_no
     ax[0].bar(bins[:-1], hist, width=(bins[1]-bins[0]), color='blue', label='pions')
+    prev_hist = hist
     # Nucleons
     hist, bins = np.histogram(nucleons.y, bins=bins_rapidity)
     #rescale histo:
     for i in range(len(hist)):
         bin_width = bins[1] - bins[0]
         hist[i] = hist[i] / bin_width / event_no
-    ax[0].bar(bins[:-1], hist, width=(bins[1]-bins[0]), color='yellow', label='nucleons')
+    ax[0].bar(bins[:-1], hist, width=(bins[1]-bins[0]), color='yellow', label='nucleons', bottom=prev_hist)
+    prev_hist += hist
     # Kaons
     hist, bins = np.histogram(kaons.y, bins=bins_rapidity)
     #rescale histo:
     for i in range(len(hist)):
         bin_width = bins[1] - bins[0]
         hist[i] = hist[i] / bin_width / event_no
-    ax[0].bar(bins[:-1], hist, width=(bins[1]-bins[0]), color='red', label='kaons')
+    ax[0].bar(bins[:-1], hist, width=(bins[1]-bins[0]), color='red', label='kaons', bottom=prev_hist)
     ax[0].legend()
 
     ### transverse mass distribution
@@ -85,7 +87,7 @@ def main():
     nucleons = nucleons[np.abs(nucleons.y) < 1.0]
     pions = pions[np.abs(pions.y) < 1.0]
     kaons = kaons[np.abs(kaons.y) < 1.0]
-    bins_mT = 80
+    bins_mT = np.linspace(0.0, 4.0, num=81)
     # Nucleons
     hist, bins = np.histogram(nucleons.mT, weights=nucleons.mT_weights, bins=bins_mT)
     #rescale histo:
