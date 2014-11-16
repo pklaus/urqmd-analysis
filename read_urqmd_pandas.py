@@ -83,7 +83,7 @@ class HDF_Worker(multiprocessing.Process):
         super(HDF_Worker, self).__init__()
 
     def run(self):
-        self.hdf = pd.HDFStore(self.h5_path)
+        self.hdf = pd.HDFStore(self.h5_path, complevel=9, complib='blosc')
         original_warnings = list(warnings.filters)
         warnings.simplefilter('ignore', tables.NaturalNameWarning)
         while True:
