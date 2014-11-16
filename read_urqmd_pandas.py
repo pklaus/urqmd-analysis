@@ -27,7 +27,7 @@ class F14_Reader(object):
         curr_event_id = 0
         names = ['r0', 'rx', 'ry', 'rz', 'p0', 'px', 'py', 'pz', 'm', 'ityp', '2i3', 'chg', 'lcl#', 'ncl', 'or']
         for df in pd.read_table(self.data_file, names=names, delim_whitespace=True, chunksize=chunksize):
-            logging.info('Read in {} lines.'.format(len(df)))
+            logging.info('Read {} lines from {}.'.format(len(df), self.data_file.name))
             if self.add_event_id_column:
                 #total_event_no = len(df[df.r0 == 'UQMD'])
                 df['event_id'] = curr_event_id
@@ -107,13 +107,15 @@ def main():
     parser.add_argument('--verbosity', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO', help="How verbose should the output be")
     args = parser.parse_args()
 
-    logging.basicConfig(level=args.verbosity)
+    logging.basicConfig(level=args.verbosity, format='%(asctime)s.%(msecs)d %(levelname)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
     queue = multiprocessing.Queue()
     worker = HDF_Worker(args.out_file, queue)
     worker.start()
     for df in F14_Reader(args.urqmd_file, args.no_event_id_column).iter_dataframes(chunksize = args.chunksize):
+        logging.debug("DataFrame ready to be written to file.")
         if not queue.empty(): time.sleep(0.05)
+        logging.debug("Queue empty. DataFrame will be put into write queue now.")
         queue.put(df.copy())
     queue.put('EOF')
     queue.close()
