@@ -4,10 +4,10 @@
 
 import pandas as pd
 import numpy as np
+import tables
 import argparse
 import logging
 import warnings
-import tables
 
 
 class F14_Reader(object):
