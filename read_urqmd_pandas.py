@@ -74,22 +74,28 @@ class F14_Reader(object):
             yield df
 
 
-class Worker(multiprocessing.Process):
+class HDF_Worker(multiprocessing.Process):
 
-    def __init__(self, q, f):
-        self.q = q # queue
-        self.f = f # function
-        super(Worker, self).__init__()
+    def __init__(self, h5_path, queue):
+        self.h5_path = h5_path
+        self.queue = queue
+        self.block_period = .01
+        super(HDF_Worker, self).__init__()
 
     def run(self):
+        self.hdf = pd.HDFStore(self.h5_path)
+        original_warnings = list(warnings.filters)
+        warnings.simplefilter('ignore', tables.NaturalNameWarning)
         while True:
             try:
                 # get queue content
-                qc = self.q.get(timeout=0.2)
+                qc = self.queue.get(timeout=self.block_period)
             except queue.Empty:
                 continue
             if type(qc) == str and qc == 'EOF': break
-            self.f(qc) # call function on queue content
+            self.hdf.append('particles', qc, format='table', data_columns=True)
+        self.hdf.close()
+        warnings.filters = original_warnings
 
 
 def main():
@@ -102,26 +108,17 @@ def main():
     args = parser.parse_args()
 
     logging.basicConfig(level=args.verbosity)
-    pool = multiprocessing.Pool()
-
-    hdf = pd.HDFStore(args.out_file)
-    original_warnings = list(warnings.filters)
-    warnings.simplefilter('ignore', tables.NaturalNameWarning)
 
     queue = multiprocessing.Queue()
-    append_func = lambda df: hdf.append('particles', df, format='table', data_columns=True)
-    worker = Worker(queue, append_func)
+    worker = HDF_Worker(args.out_file, queue)
     worker.start()
     for df in F14_Reader(args.urqmd_file, args.no_event_id_column).iter_dataframes(chunksize = args.chunksize):
         if not queue.empty(): time.sleep(0.05)
-        queue.put(df)
+        queue.put(df.copy())
     queue.put('EOF')
     queue.close()
     queue.join_thread()
     worker.join()
-
-    warnings.filters = original_warnings
-    hdf.close()
 
 if __name__ == "__main__":
     main()
