@@ -2,9 +2,10 @@
 
 """ UrQMD File Reader """
 
-import argparse
 import pandas as pd
 import numpy as np
+import argparse
+import logging
 
 
 class F14_Reader(object):
@@ -20,6 +21,7 @@ class F14_Reader(object):
         last_event_id = 0
         names = ['r0', 'rx', 'ry', 'rz', 'p0', 'px', 'py', 'pz', 'm', 'ityp', '2i3', 'chg', 'lcl#', 'ncl', 'or']
         for df in pd.read_table(self.data_file, names=names, delim_whitespace=True, chunksize=chunksize):
+            logging.info('Read in {} lines.'.format(len(df)))
             if self.add_event_id_column:
                 #total_event_no = len(df[df.r0 == 'UQMD'])
                 df['event_id'] = last_event_id
@@ -60,7 +62,10 @@ def main():
     parser.add_argument('out_file', metavar='OUT_FILE', help='The HDF5 (.h5) file to store the information in')
     parser.add_argument('--no-event-id-column', action='store_false', help='Include a column event_id in the pandas DataFrame.')
     parser.add_argument('--chunksize', type=int, default = 1000000, help='The number of lines to read in one go.')
+    parser.add_argument('--verbosity', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO', help="How verbose should the output be")
     args = parser.parse_args()
+
+    logging.basicConfig(level=args.verbosity)
 
     hdf = pd.HDFStore(args.out_file)
     for df in F14_Reader(args.urqmd_file, args.no_event_id_column).iter_dataframes(chunksize = args.chunksize):
