@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import argparse
 import logging
+import warnings
+import tables
 
 
 class F14_Reader(object):
@@ -68,8 +70,11 @@ def main():
     logging.basicConfig(level=args.verbosity)
 
     hdf = pd.HDFStore(args.out_file)
+    original_warnings = list(warnings.filters)
+    warnings.simplefilter('ignore', tables.NaturalNameWarning)
     for df in F14_Reader(args.urqmd_file, args.no_event_id_column).iter_dataframes(chunksize = args.chunksize):
         hdf.append('particles', df, format='table', data_columns=True)
+    warnings.filters = original_warnings
     hdf.close()
 
 if __name__ == "__main__":
