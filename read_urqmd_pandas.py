@@ -16,10 +16,10 @@ class F14_Reader(object):
     def get_dataframe(self):
         return pd.concat(list(self.iter_dataframes()), ignore_index=True)
 
-    def iter_dataframes(self, lines=100000):
+    def iter_dataframes(self, chunksize=100000):
         last_event_id = 0
         names = ['r0', 'rx', 'ry', 'rz', 'p0', 'px', 'py', 'pz', 'm', 'ityp', '2i3', 'chg', 'lcl#', 'ncl', 'or']
-        for df in pd.read_table(self.data_file, names=names, delim_whitespace=True, chunksize=lines):
+        for df in pd.read_table(self.data_file, names=names, delim_whitespace=True, chunksize=chunksize):
             if self.add_event_id_column:
                 #total_event_no = len(df[df.r0 == 'UQMD'])
                 df['event_id'] = last_event_id
@@ -50,10 +50,11 @@ def main():
     parser.add_argument('urqmd_file', metavar='URQMD_FILE', type=argparse.FileType('r', encoding='ascii'), help="Must be of type .f14")
     parser.add_argument('out_file', metavar='OUT_FILE', help='The HDF5 (.h5) file to store the information in')
     parser.add_argument('--no-event-id-column', action='store_false', help='Include a column event_id in the pandas DataFrame.')
+    parser.add_argument('--chunksize', type=int, default = 1000000, help='The number of lines to read in one go.')
     args = parser.parse_args()
 
     hdf = pd.HDFStore(args.out_file)
-    for df in F14_Reader(args.urqmd_file, args.no_event_id_column).iter_dataframes():
+    for df in F14_Reader(args.urqmd_file, args.no_event_id_column).iter_dataframes(chunksize = args.chunksize):
         hdf.append('particles', df, format='table', data_columns=True)
     hdf.close()
 
