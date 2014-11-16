@@ -12,21 +12,21 @@ import numpy as np
 
 def main():
     parser = argparse.ArgumentParser(description='Read a config file.')
-    parser.add_argument('pandas_file', metavar='PANDAS_FILE', help="A pickle file created with pandas.")
+    parser.add_argument('hdf5_file', metavar='HDF5_FILE', help="The HDF5 file containing the UrQMD events")
     parser.add_argument('--verbosity', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
     parser.add_argument('--event-no', type=int, help='Total number of events (to scale histograms)')
     args = parser.parse_args()
 
     logging.basicConfig(level=args.verbosity)
 
-    df = pd.read_pickle(args.pandas_file)
+    hdf = pd.HDFStore(args.hdf5_file)
+    df = hdf['particles']
 
     try:
         event_no = len(df['event_id'].unique())
     except:
         if args.event_no: event_no = args.event_no
         else: parser.error('The event_id is not included in the data. You must thus specify --event-no as param.')
-
     
     df['y'] = .5 * np.log((df.p0 + df.pz)/(df.p0 - df.pz))
     df['mT'] = np.sqrt(df.m**2 + df.px**2 + df.py**2)
@@ -116,8 +116,8 @@ def main():
     def decay(x, x_p, y_p, y0, x0):
         return y0 + y_p * np.exp(-(x-x0)*x_p)
 
-
     import pdb; pdb.set_trace()
+    hdf.close()
 
 
 if __name__ == "__main__":
