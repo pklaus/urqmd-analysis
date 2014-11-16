@@ -15,7 +15,7 @@ import queue
 
 class F14_Reader(object):
 
-    def __init__(self, data_file, add_event_id_column=False, renumber_event_ids=False):
+    def __init__(self, data_file, add_event_id_column=False, renumber_event_ids=True):
         self.data_file = data_file
         self.add_event_id_column = add_event_id_column
         self.renumber_event_ids = renumber_event_ids
