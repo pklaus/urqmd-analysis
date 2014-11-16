@@ -93,7 +93,7 @@ class HDF_Worker(multiprocessing.Process):
             except queue.Empty:
                 continue
             if type(qc) == str and qc == 'EOF': break
-            self.hdf.append('particles', qc, format='table', data_columns=True)
+            self.hdf.append('particles', qc, data_columns=True, index=False)
         self.hdf.close()
         warnings.filters = original_warnings
 
