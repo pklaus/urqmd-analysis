@@ -55,7 +55,7 @@ class F14_Reader(object):
             df = df.convert_objects(convert_numeric=True)
             df.dropna(how='any', inplace=True)
             if self.add_event_id_column:
-                df['event_id'] = df['event_id'].astype(np.int32)
+                df['event_id'] = df['event_id'].astype(np.uint32)
             df['r0'] = df['r0'].astype(np.float32)
             df['rx'] = df['rx'].astype(np.float32)
             df['ry'] = df['ry'].astype(np.float32)
