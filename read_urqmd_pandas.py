@@ -15,9 +15,9 @@ import queue
 
 class F14_Reader(object):
 
-    def __init__(self, data_file, add_event_id_column=False, renumber_event_ids=True):
+    def __init__(self, data_file, add_event_columns=False, renumber_event_ids=True):
         self.data_file = data_file
-        self.add_event_id_column = add_event_id_column
+        self.add_event_columns = add_event_columns
         self.renumber_event_ids = renumber_event_ids
 
     def get_dataframe(self):
@@ -25,37 +25,46 @@ class F14_Reader(object):
 
     def iter_dataframes(self, chunksize=100000):
         curr_event_id = 0
+        curr_impact = 0.0
         names = ['r0', 'rx', 'ry', 'rz', 'p0', 'px', 'py', 'pz', 'm', 'ityp', '2i3', 'chg', 'lcl#', 'ncl', 'or']
         for df in pd.read_table(self.data_file, names=names, delim_whitespace=True, chunksize=chunksize):
             logging.info('Read {} lines from {}.'.format(len(df), self.data_file.name))
-            if self.add_event_id_column:
+            # -- add additional event_* columns
+            if self.add_event_columns:
                 #total_event_no = len(df[df.r0 == 'UQMD'])
                 df['event_id'] = curr_event_id
+                df['event_ip'] = curr_impact
                 event_start = None
-                for idx in df[df.r0 == 'event#'].index:
+                for idx in df[df.r0 == 'UQMD'].index:
                     # remember the index where the event started
                     if event_start == None:
                         event_start = idx
                         continue
+                    curr_impact = df.loc[event_start+3, 'rx']
                     # set curr_event_id
                     if self.renumber_event_ids:
                         curr_event_id += 1
                     else:
-                        curr_event_id = df.loc[event_start, 'rx']
-                    # update event_id for all particles:
+                        curr_event_id = df.loc[event_start+5, 'rx']
+                    # update event_id and event_ip for the event from event_start (the current event) to idx (the new event)
+                    df.loc[event_start:idx, 'event_ip'] = curr_impact
                     df.loc[event_start:idx, 'event_id'] = curr_event_id
                     event_start = idx
                 # update particles belonging to the last event
+                curr_impact = df.loc[event_start+3, 'rx']
                 if self.renumber_event_ids:
                     curr_event_id += 1
                 else:
-                    curr_event_id = df.loc[event_start, 'rx']
+                    curr_event_id = df.loc[event_start + 5, 'rx']
                 df.loc[event_start:, 'event_id'] = curr_event_id
+                df.loc[event_start:, 'event_ip'] = curr_impact
+                # -- end add event_* columns
             df = df[df['or'].notnull()]
             df = df.convert_objects(convert_numeric=True)
             df.dropna(how='any', inplace=True)
-            if self.add_event_id_column:
+            if self.add_event_columns:
                 df['event_id'] = df['event_id'].astype(np.uint32)
+                df['event_ip'] = df['event_ip'].astype(np.float32)
             df['r0'] = df['r0'].astype(np.float32)
             df['rx'] = df['rx'].astype(np.float32)
             df['ry'] = df['ry'].astype(np.float32)
@@ -102,7 +111,7 @@ def main():
     parser = argparse.ArgumentParser(description='Read a config file.')
     parser.add_argument('urqmd_file', metavar='URQMD_FILE', type=argparse.FileType('r', encoding='ascii'), help="Must be of type .f14")
     parser.add_argument('out_file', metavar='OUT_FILE', help='The HDF5 (.h5) file to store the information in')
-    parser.add_argument('--no-event-id-column', action='store_false', help='Include a column event_id in the pandas DataFrame.')
+    parser.add_argument('--no-event-columns', action='store_true', help="Don NOT include columns for the event number and event impact parameter.")
     parser.add_argument('--chunksize', type=int, default = 100000, help='The number of lines to read in one go.')
     parser.add_argument('--verbosity', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO', help="How verbose should the output be")
     args = parser.parse_args()
@@ -112,7 +121,7 @@ def main():
     queue = multiprocessing.Queue()
     worker = HDF_Worker(args.out_file, queue)
     worker.start()
-    for df in F14_Reader(args.urqmd_file, args.no_event_id_column).iter_dataframes(chunksize = args.chunksize):
+    for df in F14_Reader(args.urqmd_file, not args.no_event_columns).iter_dataframes(chunksize = args.chunksize):
         logging.debug("DataFrame ready to be written to file.")
         if not queue.empty(): time.sleep(0.05)
         logging.debug("Queue empty. DataFrame will be put into write queue now.")
