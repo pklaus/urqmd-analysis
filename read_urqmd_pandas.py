@@ -103,7 +103,7 @@ def main():
     parser.add_argument('urqmd_file', metavar='URQMD_FILE', type=argparse.FileType('r', encoding='ascii'), help="Must be of type .f14")
     parser.add_argument('out_file', metavar='OUT_FILE', help='The HDF5 (.h5) file to store the information in')
     parser.add_argument('--no-event-id-column', action='store_false', help='Include a column event_id in the pandas DataFrame.')
-    parser.add_argument('--chunksize', type=int, default = 1000000, help='The number of lines to read in one go.')
+    parser.add_argument('--chunksize', type=int, default = 100000, help='The number of lines to read in one go.')
     parser.add_argument('--verbosity', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO', help="How verbose should the output be")
     args = parser.parse_args()
 
